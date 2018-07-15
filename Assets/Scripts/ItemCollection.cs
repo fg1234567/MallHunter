@@ -20,13 +20,17 @@ using Vuforia;
 public class ItemCollection : MonoBehaviour {
 
 	DatabaseReference reference;
+
 	string availability;
-	public Animator fadeOutAnim;
-	public GameObject ARCamera;
-	int numOfItems = 0; 
-	public Text itemNumber_Text;
+    public GameObject ARCamera;
+    public Animator fadeOutAnim;
     public Animator endGameAnim;
     public Animator itemNumberAnim;
+    public Text itemNumber_Text;
+    public Dropdown inventory;
+    int numOfItems = 0;
+
+
 
 	void Awake(){
 
@@ -66,14 +70,19 @@ public class ItemCollection : MonoBehaviour {
         FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://ar-test-firebase.firebaseio.com/");
 
 	    // Get the root reference location of the database.
-	    reference = FirebaseDatabase.DefaultInstance.RootReference;		
+	    reference = FirebaseDatabase.DefaultInstance.RootReference;
 
-	}
+        inventory.ClearOptions();
+
+    }
 
 
     private void Update () {
+
+        inventory.captionText.text = "Inventory";
+
         //Checks whether the mouse left button is pressed
-		if(Input.GetMouseButtonDown(0)){
+        if (Input.GetMouseButtonDown(0)){
 
 			print("Mouse clicked!");
 
@@ -94,74 +103,61 @@ public class ItemCollection : MonoBehaviour {
 					fadeOutAnim = (Animator)touchedObj.GetComponent(typeof(Animator));
 					if(fadeOutAnim){
 
-                        numOfItems += 1;
+                         /*reference.GetValueAsync().ContinueWith(task => {
 
-                        if(numOfItems == 1)
-                        {
-                            itemNumber_Text.text = "You have collected " + numOfItems.ToString() + " item";
-                        }
-                        else if(numOfItems > 1)
-                        {
-                            itemNumber_Text.text = "You have collected " + numOfItems.ToString() + " items";
-                        }
-                        if (numOfItems == 7)
-                        {
-                            itemNumber_Text.text = "You have collected all items";
-                            itemNumberAnim.enabled = true;
-                            endGameAnim.enabled = true;
-                        }
+                             if (task.IsFaulted) {
+                                 // Handle the error...
+                                 print("Database check error!");
+                             }
+                             else if (task.IsCompleted) {
+                                 DataSnapshot snapshot = task.Result;
 
-                        /*reference.GetValueAsync().ContinueWith(task => {
-					        
-					        if (task.IsFaulted) {
-					        	// Handle the error...
-					        	print("Database check error!");
-					        }
-					        else if (task.IsCompleted) {
-								DataSnapshot snapshot = task.Result;
+                                 //Reads the value of the touched object from Firebase
+                                 availability = (string)snapshot.Child(touchedObj.name).Value;
+                                 print("Availibility: " + availability);
 
-                                //Reads the value of the touched object from Firebase
-								availability = (string)snapshot.Child(touchedObj.name).Value;
-								print("Availibility: " + availability);
+                                 //Checks wether the object is collected and activates the animation of the touched object
+                                 if(availability == "available"){
+                                     fadeOutAnim.enabled = true;
 
-                                //Checks wether the object is collected and activates the animation of the touched object
-								if(availability == "available"){
-									fadeOutAnim.enabled = true;
+                                     //Sets the new value to Firebase
+                                     Dictionary<string, object> collectionUpdate = new Dictionary<string, object>(); 
+                                     collectionUpdate.Add( touchedObj.name, "collected");
 
-                                    //Sets the new value to Firebase
-									Dictionary<string, object> collectionUpdate = new Dictionary<string, object>(); 
-									collectionUpdate.Add( touchedObj.name, "collected");
+                                     //reference.SetRawJsonValueAsync(jsonString);
+                                     reference.UpdateChildrenAsync(collectionUpdate);
 
-									//reference.SetRawJsonValueAsync(jsonString);
-									reference.UpdateChildrenAsync(collectionUpdate);
+                                     //numOfItem is incremented each time an object is collected
+                                     numOfItems += 1;
 
-                                    //numOfItem is incremented each time an object is collected
-									numOfItems += 1;
+                                     List<string> objectsTouched = new List<string>() { touchedObj.name };
+                                     inventory.AddOptions(objectsTouched);
 
-                                    //Updates the text on the screen with the number of the collected items
-                                    if(numOfItems == 1)
-                                    {
-                                        itemNumber_Text.text = "You have collected" + numOfItems.ToString() + "item";
-                                    }
-                                    else if(numOfItems > 1)
-                                    {
-                                        itemNumber_Text.text = "You have collected" + numOfItems.ToString() + "items";
-                                    }
 
-                                    //When all objects are collected end game animation is collected
-                                    if (numOfItems == 7)
-                                    {
-                                        itemNumber_Text.text = "You have collected all item";
-                                        itemNumberAnim.enabled = true;
-                                        endGameAnim.enabled = true;
-                                    }
+                                     //Updates the text on the screen with the number of the collected items
+                                     if(numOfItems == 1)
+                                     {
+                                         itemNumber_Text.text = "You have collected" + numOfItems.ToString() + "item";
+                                     }
+                                     else if(numOfItems > 1)
+                                     {
+                                         itemNumber_Text.text = "You have collected" + numOfItems.ToString() + "items";
+                                     }
 
-								}else{
-									print("Item already collected!");
-									fadeOutAnim.enabled = false;
-								}
-					        }
-					    });*/
+                                     //When all objects are collected end game animation is collected
+                                     if (numOfItems == 7)
+                                     {
+                                         itemNumber_Text.text = "You have collected all item";
+                                         itemNumberAnim.enabled = true;
+                                         endGameAnim.enabled = true;
+                                     }
+
+                                 }else{
+                                     print("Item already collected!");
+                                     fadeOutAnim.enabled = false;
+                                 }
+                             }
+                         });*/
 
                     }
                     else
