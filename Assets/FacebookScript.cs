@@ -11,16 +11,23 @@ using Firebase.Auth;
 using Firebase.Unity.Editor;
 
 using Facebook.Unity;
-
+using Facebook;
+using FacebookPlatformServiceClient;
 
 
 
 public class FacebookScript : MonoBehaviour {
 
-
     void Awake()
     {
-        FB.Init();
+        if (!FB.IsInitialized)
+        {
+            FB.Init();
+        }
+        else
+        {
+            FB.ActivateApp();
+        }
 
     }
 
@@ -44,11 +51,21 @@ public class FacebookScript : MonoBehaviour {
             }
         });
 
+    }
 
+    public void LogIn()
+    {
+        FB.LogInWithReadPermissions(callback: OnLogIn);
+    }
+
+    public void OnLogIn(ILoginResult result)
+    {
+        AccessToken accessToken = AccessToken.CurrentAccessToken;
+        Credential credential = FacebookAuthProvider.GetCredential(accessToken.TokenString);
 
     }
 
-    public void facebookButtonClick()
+    public void facebookLogIn(Credential firebaseResult)
     {
         Debug.Log(FB.IsInitialized);
 
@@ -56,13 +73,7 @@ public class FacebookScript : MonoBehaviour {
 
         Firebase.Auth.FirebaseAuth auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
 
-        string accessToken = FB.ClientToken;
-        //AccessToken accessToken = AccessToken.CurrentAccessToken;
-
-        Debug.Log("***" + accessToken);
-
-        /*Firebase.Auth.Credential credential = Firebase.Auth.FacebookAuthProvider.GetCredential(accessToken);
-         auth.SignInWithCredentialAsync(credential).ContinueWith(task => {
+         auth.SignInWithCredentialAsync(firebaseResult).ContinueWith(task => {
              if (task.IsCanceled)
              {
                  Debug.LogError("SignInWithCredentialAsync was canceled.");
@@ -77,10 +88,70 @@ public class FacebookScript : MonoBehaviour {
              Firebase.Auth.FirebaseUser newUser = task.Result;
              Debug.LogFormat("User signed in successfully: {0} ({1})",
                  newUser.DisplayName, newUser.UserId);
-         });*/
-
+         });
 
     }
 
+        /*
+    private void Awake()
+    {
 
+
+
+        if (!FB.IsInitialized)
+        {
+            FB.Init();
+        }
+        else
+        {
+            FB.ActivateApp();
+        }
+    }
+
+    public void LogIn()
+    {
+        FB.LogInWithReadPermissions(callback: OnLogIn);
+
+
+    }
+    private void OnLogIn(ILoginResult result)
+    {
+        if (FB.IsLoggedIn)
+        {
+            AccessToken tocken = AccessToken.CurrentAccessToken;
+            Credential credential = FacebookAuthProvider.GetCredential(tocken.UserId);
+
+        }
+        else
+        {
+            Debug.Log("Login Failed");
+        }
+    }
+
+    public void accessToken(Credential firebaseResult)
+    {
+        FirebaseAuth auth = FirebaseAuth.DefaultInstance;
+        if (!FB.IsLoggedIn)
+        {
+            return;
+        }
+
+        auth.SignInWithCredentialAsync(firebaseResult).ContinueWith(task =>
+        {
+            if (task.IsCanceled)
+            {
+                Debug.LogError("SignInWithCredentialAsync was canceled.");
+                return;
+            }
+            if (task.IsFaulted)
+            {
+                Debug.LogError("SignInWithCredentialAsync encountered an error: " + task.Exception);
+                return;
+            }
+
+            FirebaseUser newUser = task.Result;
+            Debug.LogFormat("User signed in successfully: {0} ({1})",
+                newUser.DisplayName, newUser.UserId);
+        });
+    }*/
 }
